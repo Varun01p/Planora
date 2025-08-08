@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Optimization - Planora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8fafc;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: #667eea;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8rem 0 4rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .budget-section {
+            padding: 4rem 0;
+        }
+
+        .budget-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        /* Budget Calculator */
+        .budget-calculator {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculator-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .calculator-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .calculator-header p {
+            color: #666;
+        }
+
+        .budget-input {
+            margin-bottom: 1.5rem;
+        }
+
+        .budget-input label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .budget-input input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .budget-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .budget-slider {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-container {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e1e5e9;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 0.5rem;
+        }
+
+        .budget-breakdown {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+
+        /* Cost Tracker */
+        .cost-tracker {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .tracker-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .add-item-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .cost-items {
+            margin-bottom: 2rem;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-category {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: #667eea;
+            margin-left: 1rem;
+        }
+
+        .remove-item {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+
+        .total-cost {
+            text-align: right;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            padding-top: 1rem;
+            border-top: 2px solid #e1e5e9;
+        }
+
+        /* Alternative Suggestions */
+        .alternatives-section {
+            padding: 4rem 0;
+            background: white;
+        }
+
+        .alternatives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .alternative-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .alternative-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .alternative-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .alternative-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .savings-badge {
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .alternative-description {
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .alternative-price {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .alternative-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e1e5e9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .budget-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .alternatives-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">Planora</div>
+            <ul class="nav-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="budget.html">Budget</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="index.html" class="btn btn-primary">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Budget Optimization</h1>
+            <p>Stay within your budget with our smart cost estimation and alternative product suggestions that maintain your design vision.</p>
+        </div>
+    </section>
+
+    <!-- Budget Section -->
+    <section class="budget-section">
+        <div class="container">
+            <div class="budget-grid">
+                <!-- Budget Calculator -->
+                <div class="budget-calculator">
+                    <div class="calculator-header">
+                        <h3>Budget Calculator</h3>
+                        <p>Set your budget and see how it's allocated across different categories</p>
+                    </div>
+
+                    <div class="budget-input">
+                        <label for="totalBudget">Total Budget ($)</label>
+                        <input type="number" id="totalBudget" placeholder="Enter your total budget" value="10000">
+                    </div>
+
+                    <div class="budget-slider">
+                        <label>Room Size (sq ft)</label>
+                        <div class="slider-container">
+                            <input type="range" min="100" max="2000" value="800" class="slider" id="roomSize">
+                            <div class="slider-value" id="roomSizeValue">800 sq ft</div>
+                        </div>
+                    </div>
+
+                    <div class="budget-breakdown">
+                        <h4>Budget Breakdown</h4>
+                        <div class="breakdown-item">
+                            <span>Furniture</span>
+                            <span id="furnitureBudget">$4,000</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Lighting</span>
+                            <span id="lightingBudget">$1,200</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Decor & Accessories</span>
+                            <span id="decorBudget">$1,800</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Textiles</span>
+                            <span id="textilesBudget">$1,000</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Installation & Labor</span>
+                            <span id="laborBudget">$2,000</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Total</span>
+                            <span id="totalCalculated">$10,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Tracker -->
+                <div class="cost-tracker">
+                    <div class="tracker-header">
+                        <h3>Cost Tracker</h3>
+                        <button class="add-item-btn" onclick="addCostItem()">
+                            <i class="fas fa-plus"></i> Add Item
+                        </button>
+                    </div>
+
+                    <div class="cost-items" id="costItems">
+                        <!-- Cost items will be added here -->
+                    </div>
+
+                    <div class="total-cost">
+                        Total Spent: <span id="totalSpent">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <h3>Budget Progress</h3>
+                    <p>Track your spending against your budget</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text" id="progressText">
+                    $0 of $10,000 spent (0%)
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alternative Suggestions -->
+    <section class="alternatives-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Smart Alternatives</h2>
+                <p>Discover budget-friendly alternatives that maintain your design vision</p>
+            </div>
+            <div class="alternatives-grid" id="alternativesGrid">
+                <!-- Alternatives will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Sample cost items
+        let costItems = [
+            { id: 1, name: "Modern Sofa", category: "Furniture", price: 1200 },
+            { id: 2, name: "Pendant Light", category: "Lighting", price: 180 },
+            { id: 3, name: "Throw Pillows", category: "Textiles", price: 85 }
+        ];
+
+        // Sample alternatives
+        const alternatives = [
+            {
+                id: 1,
+                originalItem: "Designer Sofa ($2,500)",
+                alternative: "Premium Fabric Sofa",
+                description: "Similar comfort and style with high-quality fabric upholstery",
+                price: 1200,
+                savings: 1300
+            },
+            {
+                id: 2,
+                originalItem: "Crystal Chandelier ($800)",
+                alternative: "Modern Pendant Light",
+                description: "Contemporary design with LED compatibility and warm glow",
+                price: 200,
+                savings: 600
+            },
+            {
+                id: 3,
+                originalItem: "Hand-knotted Rug ($1,200)",
+                alternative: "Machine-made Rug",
+                description: "Beautiful patterns and soft texture at a fraction of the cost",
+                price: 300,
+                savings: 900
+            },
+            {
+                id: 4,
+                originalItem: "Custom Curtains ($600)",
+                alternative: "Ready-made Curtains",
+                description: "Professional look with easy installation and multiple sizes",
+                price: 150,
+                savings: 450
+            },
+            {
+                id: 5,
+                originalItem: "Solid Wood Table ($1,500)",
+                alternative: "Engineered Wood Table",
+                description: "Durable construction with natural wood veneer finish",
+                price: 600,
+                savings: 900
+            },
+            {
+                id: 6,
+                originalItem: "Designer Wall Art ($400)",
+                alternative: "Canvas Print",
+                description: "High-quality reproduction with gallery-worthy presentation",
+                price: 80,
+                savings: 320
+            }
+        ];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateBudgetBreakdown();
+            displayCostItems();
+            displayAlternatives();
+            updateProgress();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('totalBudget').addEventListener('input', updateBudgetBreakdown);
+            document.getElementById('roomSize').addEventListener('input', function() {
+                document.getElementById('roomSizeValue').textContent = this.value + ' sq ft';
+                updateBudgetBreakdown();
+            });
+        }
+
+        // Update budget breakdown
+        function updateBudgetBreakdown() {
+            const totalBudget = parseFloat(document.getElementById('totalBudget').value) || 0;
+            const roomSize = parseFloat(document.getElementById('roomSize').value) || 800;
+            
+            // Calculate allocations based on room size and budget
+            const furnitureBudget = Math.round(totalBudget * 0.4);
+            const lightingBudget = Math.round(totalBudget * 0.12);
+            const decorBudget = Math.round(totalBudget * 0.18);
+            const textilesBudget = Math.round(totalBudget * 0.1);
+            const laborBudget = Math.round(totalBudget * 0.2);
+
+            document.getElementById('furnitureBudget').textContent = '$' + furnitureBudget.toLocaleString();
+            document.getElementById('lightingBudget').textContent = '$' + lightingBudget.toLocaleString();
+            document.getElementById('decorBudget').textContent = '$' + decorBudget.toLocaleString();
+            document.getElementById('textilesBudget').textContent = '$' + textilesBudget.toLocaleString();
+            document.getElementById('laborBudget').textContent = '$' + laborBudget.toLocaleString();
+            document.getElementById('totalCalculated').textContent = '$' + totalBudget.toLocaleString();
+
+            updateProgress();
+        }
+
+        // Display cost items
+        function displayCostItems() {
+            const container = document.getElementById('costItems');
+            container.innerHTML = '';
+
+            costItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'cost-item slide-in';
+                itemElement.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-category">${item.category}</div>
+                    </div>
+                    <div class="item-price">$${item.price}</div>
+                    <button class="remove-item" onclick="removeCostItem(${item.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(itemElement);
+            });
+
+            updateTotalSpent();
+        }
+
+        // Add cost item
+        function addCostItem() {
+            const name = prompt('Enter item name:');
+            if (!name) return;
+
+            const category = prompt('Enter category (Furniture, Lighting, Decor, Textiles):');
+            if (!category) return;
+
+            const price = parseFloat(prompt('Enter price:'));
+            if (isNaN(price)) return;
+
+            const newItem = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                price: price
+            };
+
+            costItems.push(newItem);
+            displayCostItems();
+            updateProgress();
+        }
+
+        // Remove cost item
+        function removeCostItem(id) {
+            costItems = costItems.filter(item => item.id !== id);
+            displayCostItems();
+            updateProgress();
+        }
+
+        // Update total spent
+        function updateTotalSpent() {
+            const total = costItems.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('totalSpent').textContent = '$' + total.toLocaleString();
+        }
+
+        // Update progress
+        function updateProgress() {
+            const totalBudget = parseFloat(document.getElementById('totalBudget').value) || 0;
+            const totalSpent = costItems.reduce((sum, item) => sum + item.price, 0);
+            const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+            document.getElementById('progressFill').style.width = Math.min(percentage, 100) + '%';
+            document.getElementById('progressText').textContent = 
+                `$${totalSpent.toLocaleString()} of $${totalBudget.toLocaleString()} spent (${Math.round(percentage)}%)`;
+
+            // Change color based on percentage
+            const progressFill = document.getElementById('progressFill');
+            if (percentage > 90) {
+                progressFill.style.background = 'linear-gradient(90deg, #dc3545, #ff6b6b)';
+            } else if (percentage > 75) {
+                progressFill.style.background = 'linear-gradient(90deg, #ffc107, #ffd700)';
+            } else {
+                progressFill.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
+            }
+        }
+
+        // Display alternatives
+        function displayAlternatives() {
+            const container = document.getElementById('alternativesGrid');
+            container.innerHTML = '';
+
+            alternatives.forEach(alternative => {
+                const card = document.createElement('div');
+                card.className = 'alternative-card slide-in';
+                card.innerHTML = `
+                    <div class="alternative-header">
+                        <div class="alternative-title">${alternative.alternative}</div>
+                        <div class="savings-badge">Save $${alternative.savings}</div>
+                    </div>
+                    <div class="alternative-description">
+                        <strong>Instead of:</strong> ${alternative.originalItem}<br>
+                        ${alternative.description}
+                    </div>
+                    <div class="alternative-price">$${alternative.price}</div>
+                    <div class="alternative-actions">
+                        <button class="btn btn-primary btn-small">View Details</button>
+                        <button class="btn btn-secondary btn-small">Add to Cart</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html> 
