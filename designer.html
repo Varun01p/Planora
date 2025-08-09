@@ -7,7 +7,92 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // OrbitControls implementation for Three.js r128
+        THREE.OrbitControls = function ( object, domElement ) {
+            this.object = object;
+            this.domElement = ( domElement !== undefined ) ? domElement : document;
+            this.enabled = true;
+            this.target = new THREE.Vector3();
+            this.enableDamping = false;
+            this.dampingFactor = 0.25;
+            this.enableZoom = true;
+            this.enableRotate = true;
+            this.enablePan = true;
+            this.autoRotate = false;
+            
+            var scope = this;
+            var rotateStart = new THREE.Vector2();
+            var rotateEnd = new THREE.Vector2();
+            var rotateDelta = new THREE.Vector2();
+            var panStart = new THREE.Vector2();
+            var panEnd = new THREE.Vector2();
+            var panDelta = new THREE.Vector2();
+            var dollyStart = new THREE.Vector2();
+            var dollyEnd = new THREE.Vector2();
+            var dollyDelta = new THREE.Vector2();
+            
+            var STATE = { NONE: -1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY: 4, TOUCH_PAN: 5 };
+            var state = STATE.NONE;
+            
+            this.update = function() {
+                return true;
+            };
+            
+            function onMouseDown( event ) {
+                if ( scope.enabled === false ) return;
+                event.preventDefault();
+                if ( event.button === 0 ) {
+                    state = STATE.ROTATE;
+                    rotateStart.set( event.clientX, event.clientY );
+                }
+                scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
+                scope.domElement.addEventListener( 'mouseup', onMouseUp, false );
+            }
+            
+            function onMouseMove( event ) {
+                if ( scope.enabled === false ) return;
+                event.preventDefault();
+                if ( state === STATE.ROTATE ) {
+                    rotateEnd.set( event.clientX, event.clientY );
+                    rotateDelta.subVectors( rotateEnd, rotateStart );
+                    // Update camera position
+                    var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+                    scope.object.position.x += rotateDelta.x * 0.01;
+                    scope.object.position.y -= rotateDelta.y * 0.01;
+                    rotateStart.copy( rotateEnd );
+                }
+            }
+            
+            function onMouseUp( event ) {
+                if ( scope.enabled === false ) return;
+                scope.domElement.removeEventListener( 'mousemove', onMouseMove, false );
+                scope.domElement.removeEventListener( 'mouseup', onMouseUp, false );
+                state = STATE.NONE;
+            }
+            
+            function onMouseWheel( event ) {
+                if ( scope.enabled === false || scope.enableZoom === false ) return;
+                event.preventDefault();
+                var delta = 0;
+                if ( event.wheelDelta !== undefined ) {
+                    delta = event.wheelDelta;
+                } else if ( event.detail !== undefined ) {
+                    delta = - event.detail;
+                }
+                if ( delta > 0 ) {
+                    scope.object.position.multiplyScalar( 0.95 );
+                } else if ( delta < 0 ) {
+                    scope.object.position.multiplyScalar( 1.05 );
+                }
+            }
+            
+            this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
+            this.domElement.addEventListener( 'mousedown', onMouseDown, false );
+            this.domElement.addEventListener( 'wheel', onMouseWheel, false );
+            this.domElement.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
+        };
+    </script>
     <style>
         * {
             margin: 0;
@@ -512,7 +597,9 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
-            <div class="logo">Planora</div>
+            <div class="logo">
+                <a href="home.html" style="text-decoration: none; color: inherit;">Planora</a>
+            </div>
             <div class="nav-menu">
                 <button class="active" onclick="setMode('select')">
                     <i class="fas fa-mouse-pointer"></i> Select
@@ -530,6 +617,9 @@
                     <button class="view-btn active" onclick="setView('3d')">3D</button>
                     <button class="view-btn" onclick="setView('2d')">2D</button>
                 </div>
+                <a href="home.html" class="btn btn-secondary" style="margin-left: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid #667eea; color: #fff; text-decoration: none; border-radius: 6px; font-size: 0.9rem;">
+                    <i class="fas fa-home"></i> Home
+                </a>
             </div>
         </div>
     </nav>
@@ -602,12 +692,12 @@
         <div class="sidebar-section">
             <h3><i class="fas fa-palette"></i> Materials</h3>
             <div class="color-picker">
-                <div class="color-option active" style="background: #8B4513;" onclick="setMaterial('wood')"></div>
-                <div class="color-option" style="background: #F5F5DC;" onclick="setMaterial('cream')"></div>
-                <div class="color-option" style="background: #2F4F4F;" onclick="setMaterial('dark')"></div>
-                <div class="color-option" style="background: #FFD700;" onclick="setMaterial('gold')"></div>
-                <div class="color-option" style="background: #C0C0C0;" onclick="setMaterial('silver')"></div>
-                <div class="color-option" style="background: #FF69B4;" onclick="setMaterial('pink')"></div>
+                <div class="color-option active" style="background: #8B4513;" onclick="setMaterial('wood', this)"></div>
+                <div class="color-option" style="background: #F5F5DC;" onclick="setMaterial('cream', this)"></div>
+                <div class="color-option" style="background: #2F4F4F;" onclick="setMaterial('dark', this)"></div>
+                <div class="color-option" style="background: #FFD700;" onclick="setMaterial('gold', this)"></div>
+                <div class="color-option" style="background: #C0C0C0;" onclick="setMaterial('silver', this)"></div>
+                <div class="color-option" style="background: #FF69B4;" onclick="setMaterial('pink', this)"></div>
             </div>
         </div>
     </div>
@@ -734,42 +824,61 @@
 
         // Initialize the 3D scene
         function init() {
-            // Create scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x2a2a2a);
+            try {
+                console.log('Initializing 3D scene...');
+                
+                // Check WebGL support
+                if (!window.WebGLRenderingContext) {
+                    throw new Error('WebGL is not supported by this browser');
+                }
+                
+                // Create scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x2a2a2a);
 
-            // Create camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(10, 10, 10);
+                // Create camera
+                const canvas = document.getElementById('canvas3d');
+                if (!canvas) {
+                    throw new Error('Canvas element not found');
+                }
+                
+                camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+                camera.position.set(10, 10, 10);
 
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(document.getElementById('canvas3d').clientWidth, document.getElementById('canvas3d').clientHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('canvas3d').appendChild(renderer.domElement);
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                if (renderer.shadowMap) {
+                    renderer.shadowMap.enabled = true;
+                    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                }
+                canvas.appendChild(renderer.domElement);
 
-            // Add controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
+                // Add controls
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
 
-            // Add lighting
-            addLighting();
+                // Add lighting
+                addLighting();
 
-            // Add grid
-            addGrid();
+                // Add grid
+                addGrid();
 
-            // Add event listeners
-            addEventListeners();
+                // Add event listeners
+                addEventListeners();
 
-            // Start animation loop
-            animate();
+                // Start animation loop
+                animate();
 
-            // Hide loading screen
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-            }, 2000);
+                console.log('3D scene initialized successfully');
+                return true;
+            } catch (error) {
+                console.error('Error initializing 3D scene:', error);
+                document.querySelector('#statusText').textContent = 'Error loading 3D scene: ' + error.message;
+                return false;
+            }
         }
 
         // Add lighting to the scene
@@ -909,7 +1018,7 @@
             
             // Update UI
             document.querySelectorAll('.nav-menu button').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelector(`[onclick="setMode('${mode}')"]`).classList.add('active');
             
             // Update status
             document.getElementById('statusText').textContent = `Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
@@ -921,7 +1030,7 @@
             
             // Update UI
             document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelector(`[onclick="setView('${view}')"]`).classList.add('active');
             
             if (view === '2d') {
                 camera.position.set(0, 20, 0);
@@ -1049,9 +1158,9 @@
         }
 
         // Set material
-        function setMaterial(materialType) {
+        function setMaterial(materialType, element) {
             document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-            event.target.classList.add('active');
+            if (element) element.classList.add('active');
             
             if (selectedObject && selectedObject.material) {
                 const colors = {
@@ -1135,8 +1244,199 @@
             renderer.render(scene, camera);
         }
 
+                // Create sample house plan
+        function createSamplePlan() {
+            // Create a sample living room
+            const roomGeometry = new THREE.BoxGeometry(15, 9, 12);
+            const roomMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xeeeeee, 
+                transparent: true, 
+                opacity: 0.2,
+                side: THREE.BackSide
+            });
+            const room = new THREE.Mesh(roomGeometry, roomMaterial);
+            room.position.set(0, 4.5, 0);
+            room.userData = { type: 'room', name: 'Living Room', width: 15, length: 12, height: 9 };
+            scene.add(room);
+            objects.push(room);
+
+            // Add floor
+            const floorGeometry = new THREE.PlaneGeometry(15, 12);
+            const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xD2B48C });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(0, 0, 0);
+            floor.userData = { type: 'floor' };
+            scene.add(floor);
+            objects.push(floor);
+
+            // Add sample furniture
+            // Sofa
+            const sofaGeometry = new THREE.BoxGeometry(3, 0.8, 1.2);
+            const sofaMaterial = new THREE.MeshLambertMaterial({ color: 0x4169E1 });
+            const sofa = new THREE.Mesh(sofaGeometry, sofaMaterial);
+            sofa.position.set(-3, 0.4, -2);
+            sofa.userData = { type: 'furniture', furnitureType: 'sofa' };
+            sofa.castShadow = true;
+            sofa.receiveShadow = true;
+            scene.add(sofa);
+            objects.push(sofa);
+
+            // Coffee table
+            const tableGeometry = new THREE.BoxGeometry(2, 0.6, 1);
+            const tableMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const table = new THREE.Mesh(tableGeometry, tableMaterial);
+            table.position.set(-3, 0.3, 0);
+            table.userData = { type: 'furniture', furnitureType: 'table' };
+            table.castShadow = true;
+            table.receiveShadow = true;
+            scene.add(table);
+            objects.push(table);
+
+            // TV Stand
+            const tvStandGeometry = new THREE.BoxGeometry(3, 1.2, 0.6);
+            const tvStandMaterial = new THREE.MeshLambertMaterial({ color: 0x2F4F4F });
+            const tvStand = new THREE.Mesh(tvStandGeometry, tvStandMaterial);
+            tvStand.position.set(-3, 0.6, 4);
+            tvStand.userData = { type: 'furniture', furnitureType: 'cabinet' };
+            tvStand.castShadow = true;
+            tvStand.receiveShadow = true;
+            scene.add(tvStand);
+            objects.push(tvStand);
+
+            // Armchair
+            const chairGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const chairMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+            const chair = new THREE.Mesh(chairGeometry, chairMaterial);
+            chair.position.set(0, 0.5, -3);
+            chair.userData = { type: 'furniture', furnitureType: 'chair' };
+            chair.castShadow = true;
+            chair.receiveShadow = true;
+            scene.add(chair);
+            objects.push(chair);
+
+            // Floor lamp
+            const lampGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1.8);
+            const lampMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+            const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+            lamp.position.set(2, 0.9, -3);
+            lamp.userData = { type: 'furniture', furnitureType: 'lamp' };
+            lamp.castShadow = true;
+            scene.add(lamp);
+            objects.push(lamp);
+
+            // Rug
+            const rugGeometry = new THREE.PlaneGeometry(4, 3);
+            const rugMaterial = new THREE.MeshLambertMaterial({ color: 0xCD853F });
+            const rug = new THREE.Mesh(rugGeometry, rugMaterial);
+            rug.rotation.x = -Math.PI / 2;
+            rug.position.set(-3, 0.01, -1);
+            rug.userData = { type: 'furniture', furnitureType: 'rug' };
+            scene.add(rug);
+            objects.push(rug);
+
+            // Plant
+            const plantGeometry = new THREE.SphereGeometry(0.4);
+            const plantMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+            const plant = new THREE.Mesh(plantGeometry, plantMaterial);
+            plant.position.set(4, 0.4, 3);
+            plant.userData = { type: 'furniture', furnitureType: 'plant' };
+            plant.castShadow = true;
+            scene.add(plant);
+            objects.push(plant);
+
+            // Update object count and room info
+            updateObjectCount();
+            document.getElementById('roomName').value = 'Sample Living Room';
+            document.getElementById('roomArea').value = '180 sq ft';
+            document.getElementById('statusText').textContent = 'Sample living room loaded - Ready to design';
+        }
+
+        // Fallback mode for when Three.js fails to load
+        function showFallbackMode() {
+            document.getElementById('loadingScreen').style.display = 'none';
+            const canvas = document.getElementById('canvas3d');
+            canvas.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-align: center; padding: 2rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.8;"></i>
+                    <h2 style="margin-bottom: 1rem;">3D Mode Unavailable</h2>
+                    <p style="margin-bottom: 2rem; opacity: 0.9;">The 3D designer couldn't load. This might be due to:</p>
+                    <ul style="text-align: left; margin-bottom: 2rem; opacity: 0.9;">
+                        <li>Internet connection issues</li>
+                        <li>Browser compatibility</li>
+                        <li>WebGL not supported</li>
+                    </ul>
+                    <button onclick="location.reload()" style="background: white; color: #667eea; border: none; padding: 1rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+                        <i class="fas fa-refresh"></i> Try Again
+                    </button>
+                    <br><br>
+                    <a href="home.html" style="color: white; text-decoration: underline; opacity: 0.8;">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            `;
+            document.getElementById('statusText').textContent = '3D mode unavailable - Please try refreshing';
+        }
+
         // Initialize when page loads
-        window.addEventListener('load', init);
+        window.addEventListener('load', () => {
+            console.log('Page loaded, starting initialization...');
+            
+            // Add a small delay to ensure all scripts are loaded
+            setTimeout(() => {
+                // Check if THREE.js is loaded
+                if (typeof THREE === 'undefined') {
+                    console.error('THREE.js failed to load');
+                    // Show 2D fallback
+                    showFallbackMode();
+                    return;
+                }
+                
+                console.log('THREE.js loaded successfully');
+                
+                // Show loading progress
+                let progress = 0;
+                const loadingBar = document.getElementById('loadingBar');
+                const loadingInterval = setInterval(() => {
+                    progress += 20;
+                    loadingBar.style.width = progress + '%';
+                    
+                    if (progress >= 40 && !scene) {
+                        // Initialize 3D scene at 40%
+                        console.log('Initializing 3D scene...');
+                        const success = init();
+                        if (!success) {
+                            clearInterval(loadingInterval);
+                            document.getElementById('loadingScreen').style.display = 'none';
+                            alert('Failed to initialize 3D scene. Please refresh the page.');
+                            return;
+                        }
+                        console.log('3D scene initialized successfully');
+                    }
+                    
+                    if (progress >= 80 && scene) {
+                        // Create sample plan at 80%
+                        console.log('Creating sample plan...');
+                        try {
+                            createSamplePlan();
+                            console.log('Sample plan created successfully');
+                        } catch (error) {
+                            console.error('Error creating sample plan:', error);
+                        }
+                    }
+                    
+                    if (progress >= 100) {
+                        clearInterval(loadingInterval);
+                        // Hide loading screen
+                        setTimeout(() => {
+                            document.getElementById('loadingScreen').style.display = 'none';
+                            document.getElementById('statusText').textContent = 'Ready to design';
+                            console.log('Loading complete!');
+                        }, 500);
+                    }
+                }, 300);
+            }, 100);
+        });
     </script>
 </body>
 </html> 
