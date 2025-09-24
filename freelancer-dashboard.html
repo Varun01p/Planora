@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer Dashboard - Planora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f6f7fb; color: #333; }
+
+        .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .sidebar { background: #111827; color: #e5e7eb; padding: 1.25rem 1rem; }
+        .brand { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .brand .logo { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:#fff; }
+        .brand h2 { font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg,#a5b4fc,#c4b5fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+        .nav { margin-top: 0.5rem; }
+        .nav button { width: 100%; text-align: left; padding: 0.75rem 0.75rem; border: 0; background: transparent; color: #d1d5db; border-radius: 8px; font-weight: 600; cursor: pointer; display:flex; align-items:center; gap:0.6rem; }
+        .nav button:hover { background: rgba(255,255,255,0.08); }
+        .nav button.active { background: #374151; color: #fff; }
+
+        .topbar { background: #ffffff; padding: 0.9rem 1.25rem; display:flex; align-items:center; justify-content: space-between; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 5; }
+        .topbar .title { font-weight: 700; color:#111827; }
+        .topbar .actions { display:flex; gap:0.5rem; align-items:center; }
+        .btn { border: 0; border-radius: 10px; padding: 0.55rem 0.9rem; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; }
+        .btn-outline { background: #fff; color:#4b5563; border: 1px solid #e5e7eb; }
+
+        .content { padding: 1.25rem; }
+        .section { display:none; }
+        .section.active { display:block; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .card { background:#fff; border: 1px solid #eef0f4; border-radius: 14px; padding: 1rem; box-shadow: 0 10px 24px rgba(17,24,39,0.04); }
+        .card h3 { font-size: 1rem; margin-bottom: 0.75rem; color:#111827; }
+
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 0.75rem; border-bottom: 1px solid #eef0f4; text-align:left; font-size: 0.95rem; }
+        .status { padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; display:inline-block; }
+        .s-pending { background:#fff7ed; color:#c2410c; }
+        .s-active { background:#ecfeff; color:#0e7490; }
+        .s-completed { background:#ecfdf5; color:#047857; }
+
+        .actions-row { display:flex; gap: 0.5rem; }
+        .pill { padding: 0.35rem 0.6rem; border-radius: 8px; border: 1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:600; }
+
+        .detail { display:grid; grid-template-columns: 1.2fr 1fr; gap:1rem; }
+        .message-list { max-height: 260px; overflow:auto; border:1px solid #eef0f4; border-radius:10px; padding:0.75rem; background:#fcfcfe; }
+        .message { margin-bottom:0.6rem; }
+        .message .meta { color:#6b7280; font-size:0.8rem; }
+        .upload { border:2px dashed #e5e7eb; border-radius:12px; padding:0.9rem; background:#fafbff; }
+
+        .form-row { display:grid; grid-template-columns: repeat(2,1fr); gap:0.75rem; margin-bottom:0.6rem; }
+        .input, .select, .textarea { width:100%; padding: 0.7rem 0.8rem; border:1px solid #e5e7eb; border-radius:10px; font-size:0.95rem; background:#fff; }
+        .textarea { min-height: 120px; resize: vertical; }
+        .empty { text-align:center; padding:1rem; color:#6b7280; }
+
+        @media (max-width: 980px) { .detail { grid-template-columns: 1fr; } .layout { grid-template-columns: 220px 1fr; } }
+        @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } .sidebar { position: sticky; top:0; z-index: 6; } }
+    </style>
+    <script>
+        // Mock data
+        const state = {
+            projects: [
+                { id: 101, name: 'Modern Apartment Living Room', client: 'Priya Sharma', status: 'Pending', budget: 1200, createdAt: '2025-09-01' },
+                { id: 102, name: 'Minimalist Kitchen Remodel', client: 'Rahul Verma', status: 'Active', budget: 2200, createdAt: '2025-09-10' },
+                { id: 103, name: 'Cozy Bedroom Concept', client: 'Anita Rao', status: 'Completed', budget: 900, createdAt: '2025-08-18' }
+            ],
+            messages: {
+                102: [
+                    { by: 'Client', text: 'Please use matte black handles.', at: 'Sep 12, 10:24' },
+                    { by: 'You', text: 'Noted. Uploading a variant soon.', at: 'Sep 12, 11:02' }
+                ]
+            },
+            clients: [
+                { id: 1, name: 'Priya Sharma', email: 'priya@example.com', phone: '+91 98765 00001', notes: 'Loves natural woods.' },
+                { id: 2, name: 'Rahul Verma', email: 'rahul@example.com', phone: '+91 98765 00002', notes: 'Prefers minimal, monochrome.' },
+                { id: 3, name: 'Anita Rao', email: 'anita@example.com', phone: '+91 98765 00003', notes: '' }
+            ],
+            invoices: [
+                { id: 'INV-001', client: 'Rahul Verma', amount: 2200, status: 'Paid', date: '2025-09-14' },
+                { id: 'INV-002', client: 'Priya Sharma', amount: 600, status: 'Sent', date: '2025-09-15' }
+            ]
+        };
+
+        function show(section) {
+            document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            document.getElementById('pageTitle').textContent = document.querySelector(`[data-section="${section}"]`).dataset.title;
+        }
+
+        // Projects rendering
+        function renderProjects() {
+            const body = document.getElementById('projectsBody');
+            body.innerHTML = '';
+            state.projects.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.client}</td>
+                    <td><span class="status ${p.status==='Pending'?'s-pending':p.status==='Active'?'s-active':'s-completed'}">${p.status}</span></td>
+                    <td>$${p.budget}</td>
+                    <td class="actions-row">
+                        <button class="pill" onclick="openProject(${p.id})">Open</button>
+                        ${p.status==='Pending'?`<button class="pill" onclick="setProjectStatus(${p.id},'Active')">Accept</button><button class="pill" onclick="setProjectStatus(${p.id},'Declined')">Decline</button>`:''}
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function setProjectStatus(id, status) {
+            const p = state.projects.find(x => x.id===id);
+            if (!p) return;
+            p.status = status==='Declined' ? 'Pending' : status; // keep in list but mark pending if declined
+            renderProjects();
+        }
+
+        function openProject(id) {
+            const p = state.projects.find(x => x.id===id);
+            if (!p) return;
+            document.getElementById('projectTitle').textContent = `${p.name} · ${p.client}`;
+            document.getElementById('projectStatus').value = p.status;
+            const msgs = state.messages[id] || [];
+            const wrap = document.getElementById('messageWrap');
+            wrap.innerHTML = msgs.map(m => `<div class="message"><div><strong>${m.by}:</strong> ${m.text}</div><div class="meta">${m.at}</div></div>`).join('') || '<div class="empty">No messages yet</div>';
+            document.getElementById('projectDetail').style.display='block';
+        }
+
+        function updateProjectStatus() {
+            const title = document.getElementById('projectTitle').textContent;
+            const id = parseInt(document.getElementById('projectsBody').querySelector('tr td')?.textContent || '0', 10);
+            // naive update: find project by title
+            const p = state.projects.find(x => `${x.name} · ${x.client}`===title);
+            if (p) { p.status = document.getElementById('projectStatus').value; renderProjects(); }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const title = document.getElementById('projectTitle').textContent;
+            const proj = state.projects.find(x => `${x.name} · ${x.client}`===title);
+            if (!proj) return;
+            const arr = state.messages[proj.id] = state.messages[proj.id] || [];
+            arr.push({ by:'You', text, at: new Date().toLocaleString() });
+            input.value='';
+            openProject(proj.id);
+        }
+
+        // Clients
+        function renderClients() {
+            const body = document.getElementById('clientsBody');
+            body.innerHTML='';
+            state.clients.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.name}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone}</td>
+                    <td class="actions-row"><button class="pill" onclick='openClient(${c.id})'>View</button></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function openClient(id) {
+            const c = state.clients.find(x=>x.id===id);
+            if (!c) return;
+            document.getElementById('clientName').value = c.name;
+            document.getElementById('clientEmail').value = c.email;
+            document.getElementById('clientPhone').value = c.phone;
+            document.getElementById('clientNotes').value = c.notes || '';
+            document.getElementById('clientDetail').style.display='block';
+        }
+
+        function saveClientNotes() {
+            const name = document.getElementById('clientName').value;
+            const c = state.clients.find(x=>x.name===name);
+            if (c) { c.notes = document.getElementById('clientNotes').value; alert('Notes saved'); }
+        }
+
+        // Invoices
+        function renderInvoices() {
+            const body = document.getElementById('invoiceBody');
+            body.innerHTML='';
+            state.invoices.forEach(inv => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${inv.id}</td>
+                    <td>${inv.client}</td>
+                    <td>$${inv.amount}</td>
+                    <td><span class="status ${inv.status==='Paid'?'s-completed':inv.status==='Overdue'?'s-pending':'s-active'}">${inv.status}</span></td>
+                    <td>${inv.date}</td>
+                `;
+                body.appendChild(tr);
+            });
+            const total = state.invoices.reduce((s,i)=> s + (i.status==='Paid'?i.amount:0), 0);
+            document.getElementById('earnTotal').textContent = `$${total}`;
+        }
+
+        function createInvoice(ev) {
+            ev.preventDefault();
+            const client = document.getElementById('invClient').value.trim();
+            const amount = parseFloat(document.getElementById('invAmount').value || '0');
+            if (!client || !amount) return;
+            const id = `INV-${String(state.invoices.length+1).padStart(3,'0')}`;
+            state.invoices.push({ id, client, amount, status: 'Sent', date: new Date().toISOString().slice(0,10) });
+            renderInvoices();
+            document.getElementById('invForm').reset();
+            alert('Invoice created and marked as Sent');
+        }
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProjects();
+            renderClients();
+            renderInvoices();
+            show('projects');
+        });
+    </script>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo"><i class="fas fa-palette"></i></div>
+                <h2>Planora Designer</h2>
+            </div>
+            <div class="nav">
+                <button data-section="projects" data-title="Projects" class="active" onclick="show('projects')"><i class="fas fa-folder-open"></i> Projects</button>
+                <button data-section="clients" data-title="Clients" onclick="show('clients')"><i class="fas fa-users"></i> Clients</button>
+                <button data-section="invoicing" data-title="Invoicing" onclick="show('invoicing')"><i class="fas fa-file-invoice-dollar"></i> Invoicing</button>
+                <button data-section="settings" data-title="Profile & Settings" onclick="show('settings')"><i class="fas fa-gear"></i> Profile & Settings</button>
+                <a href="home.html" style="display:block; margin-top:1rem; text-decoration:none;">
+                    <button class="btn-outline" style="width:100%"><i class="fas fa-home"></i> Back to Home</button>
+                </a>
+            </div>
+        </aside>
+        <main>
+            <div class="topbar">
+                <div class="title" id="pageTitle">Projects</div>
+                <div class="actions">
+                    <a href="designer.html" class="btn btn-outline"><i class="fas fa-cube"></i> 3D Designer</a>
+                </div>
+            </div>
+            <div class="content">
+                <!-- Projects Section -->
+                <section id="projects" class="section active">
+                    <div class="card">
+                        <h3>All Projects</h3>
+                        <div style="overflow:auto;">
+                            <table class="table">
+                                <thead>
+                                    <tr><th>ID</th><th>Name</th><th>Client</th><th>Status</th><th>Budget</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody id="projectsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="projectDetail" class="card" style="margin-top:1rem; display:none;">
+                        <h3 id="projectTitle">Project Detail</h3>
+                        <div class="detail" style="margin-top:0.5rem;">
+                            <div>
+                                <div class="form-row">
+                                    <select id="projectStatus" class="select" onchange="updateProjectStatus()">
+                                        <option>Pending</option>
+                                        <option>Active</option>
+                                        <option>Awaiting Feedback</option>
+                                        <option>Completed</option>
+                                    </select>
+                                    <div class="upload">
+                                        <div style="font-weight:600; margin-bottom:0.25rem;">Upload Deliverables</div>
+                                        <input type="file" multiple>
+                                    </div>
+                                </div>
+                                <div class="message-list" id="messageWrap"></div>
+                                <div class="form-row" style="grid-template-columns: 1fr auto; margin-top:0.6rem;">
+                                    <input id="messageInput" class="input" placeholder="Write a message to the client...">
+                                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="card" style="padding:0.75rem;">
+                                    <h3>Brief & Files</h3>
+                                    <div class="empty">Client brief and uploads appear here.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Clients Section -->
+                <section id="clients" class="section">
+                    <div class="card">
+                        <h3>Your Clients</h3>
+                        <div style="overflow:auto;">
+                            <table class="table">
+                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+                                <tbody id="clientsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="clientDetail" class="card" style="margin-top:1rem; display:none;">
+                        <h3>Client Details</h3>
+                        <div class="form-row">
+                            <input id="clientName" class="input" placeholder="Name" readonly>
+                            <input id="clientEmail" class="input" placeholder="Email" readonly>
+                        </div>
+                        <div class="form-row">
+                            <input id="clientPhone" class="input" placeholder="Phone" readonly>
+                            <input class="input" value="Registered" readonly>
+                        </div>
+                        <div style="margin-top:0.5rem;">
+                            <textarea id="clientNotes" class="textarea" placeholder="Private notes (visible only to you)"></textarea>
+                        </div>
+                        <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+                            <button class="btn btn-primary" onclick="saveClientNotes()">Save Notes</button>
+                            <button class="btn btn-outline" onclick="document.getElementById('clientDetail').style.display='none'">Close</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Invoicing Section -->
+                <section id="invoicing" class="section">
+                    <div class="grid">
+                        <div class="card">
+                            <h3>Create Invoice</h3>
+                            <form id="invForm" onsubmit="createInvoice(event)" style="margin-top:0.5rem;">
+                                <div class="form-row">
+                                    <input id="invClient" list="clientList" class="input" placeholder="Client name" required>
+                                    <input id="invAmount" class="input" type="number" step="0.01" placeholder="Amount (USD)" required>
+                                </div>
+                                <datalist id="clientList"></datalist>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button class="btn btn-primary" type="submit">Create & Send</button>
+                                    <button class="btn btn-outline" type="reset">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card">
+                            <h3>Earnings</h3>
+                            <div style="font-size:2rem; font-weight:800; color:#111827; margin-top:0.5rem;" id="earnTotal">$0</div>
+                            <div style="color:#6b7280;">Paid invoices total</div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:1rem;">
+                        <h3>Invoices</h3>
+                        <div style="overflow:auto;">
+                            <table class="table">
+                                <thead><tr><th>ID</th><th>Client</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+                                <tbody id="invoiceBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings" class="section">
+                    <div class="grid">
+                        <div class="card">
+                            <h3>Public Profile</h3>
+                            <div class="form-row" style="margin-top:0.5rem;">
+                                <input class="input" placeholder="Display Name" value="Your Name">
+                                <input class="input" placeholder="Portfolio URL" value="https://example.com/portfolio">
+                            </div>
+                            <textarea class="textarea" placeholder="Bio">Freelance interior designer specializing in modern, minimal spaces.</textarea>
+                            <div style="margin-top:0.5rem;"><button class="btn btn-primary">Save Profile</button></div>
+                        </div>
+                        <div class="card">
+                            <h3>Security</h3>
+                            <div class="form-row" style="margin-top:0.5rem;">
+                                <input class="input" type="password" placeholder="New Password">
+                                <input class="input" type="password" placeholder="Confirm Password">
+                            </div>
+                            <div style="margin-top:0.5rem;"><button class="btn btn-primary">Update Password</button></div>
+                        </div>
+                        <div class="card">
+                            <h3>Payments</h3>
+                            <div class="form-row" style="margin-top:0.5rem;">
+                                <select class="select"><option>Bank Transfer</option><option>UPI</option><option>PayPal</option></select>
+                                <input class="input" placeholder="Account / UPI ID / PayPal Email">
+                            </div>
+                            <div style="margin-top:0.5rem;"><button class="btn btn-primary">Save Payment Details</button></div>
+                        </div>
+                        <div class="card">
+                            <h3>Notifications</h3>
+                            <div style="margin-top:0.5rem; display:grid; gap:0.5rem;">
+                                <label><input type="checkbox" checked> Project updates</label>
+                                <label><input type="checkbox" checked> New project requests</label>
+                                <label><input type="checkbox"> Invoice status changes</label>
+                            </div>
+                            <div style="margin-top:0.5rem;"><button class="btn btn-primary">Save Preferences</button></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Fill client datalist for invoices
+        window.addEventListener('DOMContentLoaded', () => {
+            const dl = document.getElementById('clientList');
+            dl.innerHTML = state.clients.map(c=>`<option value="${c.name}">`).join('');
+        });
+    </script>
+</body>
+</html>
+
+
