@@ -6,6 +6,7 @@
     <title>Planora - Your Interior Design Journey</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/profile-styles.css">
     <style>
         * {
             margin: 0;
@@ -442,6 +443,7 @@
                 <li><a href="#about">About</a></li>
             </ul>
             <div class="nav-actions">
+                <!-- Profile button or Sign In button will be dynamically inserted here -->
                 <a href="index.html" class="btn btn-secondary">Sign In</a>
                 <button class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>
@@ -611,9 +613,14 @@
         const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
         const navMenu = document.querySelector('.nav-menu');
         
-        mobileMenuBtn.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-        });
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                navMenu.classList.toggle('active');
+            });
+        }
     </script>
+    
+    <!-- Authentication Manager -->
+    <script src="js/auth-manager.js"></script>
 </body>
 </html> 

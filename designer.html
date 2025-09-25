@@ -6,6 +6,7 @@
     <title>3D Designer - Planora</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/profile-styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // OrbitControls implementation for Three.js r128
@@ -617,6 +618,11 @@
                     <button class="view-btn active" onclick="setView('3d')">3D</button>
                     <button class="view-btn" onclick="setView('2d')">2D</button>
                 </div>
+            </div>
+            <div class="nav-actions">
+                <!-- Profile button or Sign In button will be dynamically inserted here -->
+                <a href="index.html" class="btn btn-secondary">Sign In</a>
+            </div>
                 <a href="home.html" class="btn btn-secondary" style="margin-left: 1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); border: 1px solid #667eea; color: #fff; text-decoration: none; border-radius: 6px; font-size: 0.9rem;">
                     <i class="fas fa-home"></i> Home
                 </a>
@@ -1438,5 +1444,8 @@
             }, 100);
         });
     </script>
+    
+    <!-- Authentication Manager -->
+    <script src="js/auth-manager.js"></script>
 </body>
 </html> 

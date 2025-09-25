@@ -184,7 +184,7 @@
                         <input type="password" placeholder="Password" required>
                         <i class="fas fa-lock"></i>
                     </div>
-                    <button type="submit" class="btn btn-primary" onclick="redirectDesigner(event)">Sign In to Designer Portal</button>
+                    <button type="submit" class="btn btn-primary">Sign In to Designer Portal</button>
                     <div class="divider">or continue with</div>
                     <div class="social-login">
                         <button type="button" class="social-btn"><i class="fab fa-google"></i> Google</button>
@@ -239,7 +239,7 @@
                         <input type="checkbox" id="agreeTermsDesigner" required style="width:auto;">
                         <label for="agreeTermsDesigner">I agree to the Designer Terms & Conditions</label>
                     </div>
-                    <button type="submit" class="btn btn-primary" onclick="redirectDesigner(event)">Create Designer Account</button>
+                    <button type="submit" class="btn btn-primary">Create Designer Account</button>
                     <div class="divider">or continue with</div>
                     <div class="social-login">
                         <button type="button" class="social-btn"><i class="fab fa-google"></i> Google</button>
@@ -304,8 +304,76 @@
             }
         }
 
-        function redirectClient(e){ e.preventDefault(); window.location.href = 'home.html'; }
-        function redirectDesigner(e){ e.preventDefault(); window.location.href = 'freelancer-dashboard.html'; }
+        async function apiRequest(path, data) {
+            const res = await fetch(path, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const body = await res.json().catch(()=>({}));
+            if (!res.ok) throw new Error(body.message || 'Request failed');
+            return body;
+        }
+
+        async function redirectClient(e) {
+            e.preventDefault();
+            const form = e.target;
+            const inputs = form.querySelectorAll('input');
+            const values = Array.from(inputs).map(i=>i.value.trim());
+            const isSignup = form.id === 'signupForm';
+            try {
+                if (isSignup) {
+                    const [name, email, password] = [values[0], values[1], values[3] || values[2]];
+                    const payload = { name, email, password, role: 'client' };
+                    const resp = await apiRequest('/api/auth/signup', payload);
+                    localStorage.setItem('token', resp.token);
+                    if (resp.user) localStorage.setItem('user', JSON.stringify(resp.user));
+                } else {
+                    const [email, password] = [values[0], values[1]];
+                    const resp = await apiRequest('/api/auth/login', { email, password });
+                    localStorage.setItem('token', resp.token);
+                    if (resp.user) localStorage.setItem('user', JSON.stringify(resp.user));
+                }
+                window.location.href = 'home.html';
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function redirectDesigner(e) {
+            e.preventDefault();
+            const form = (e.target && e.target.closest) ? e.target.closest('form') : e.target;
+            const inputs = form.querySelectorAll('input, select');
+            const map = {};
+            inputs.forEach((el, idx)=>{
+                const key = el.type === 'email' ? 'email' : el.type === 'password' ? (map.password? 'confirmPassword' : 'password') : el.type === 'tel' ? 'phone' : el.tagName==='SELECT' ? 'experienceYears' : el.placeholder?.toLowerCase().includes('name') ? 'name' : `f${idx}`;
+                if (el.type !== 'checkbox') map[key] = el.value.trim();
+            });
+            const isSignup = form.id === 'freelancerSignupForm';
+            try {
+                if (isSignup) {
+                    const payload = {
+                        name: map.name,
+                        email: map.email,
+                        password: map.password,
+                        role: 'freelancer',
+                        phone: map.phone || '',
+                        specialization: (map.f6 || map.f5 || ''),
+                        experienceYears: map.experienceYears || ''
+                    };
+                    const resp = await apiRequest('/api/auth/signup', payload);
+                    localStorage.setItem('token', resp.token);
+                    if (resp.user) localStorage.setItem('user', JSON.stringify(resp.user));
+                } else {
+                    const resp = await apiRequest('/api/auth/login', { email: map.email, password: map.password });
+                    localStorage.setItem('token', resp.token);
+                    if (resp.user) localStorage.setItem('user', JSON.stringify(resp.user));
+                }
+                window.location.href = 'freelancer-dashboard.html';
+            } catch (err) {
+                alert(err.message);
+            }
+        }
 
         // Initialize default
         toggleForm('login');

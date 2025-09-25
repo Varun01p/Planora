@@ -6,6 +6,7 @@
     <title>Designer Dashboard - Planora</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/profile-styles.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f6f7fb; color: #333; }
@@ -247,6 +248,7 @@
                 <div class="title" id="pageTitle">Projects</div>
                 <div class="actions">
                     <a href="designer.html" class="btn btn-outline"><i class="fas fa-cube"></i> 3D Designer</a>
+                    <button class="btn btn-outline" onclick="AuthManager.logout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
                 </div>
             </div>
             <div class="content">
@@ -409,6 +411,25 @@
         window.addEventListener('DOMContentLoaded', () => {
             const dl = document.getElementById('clientList');
             dl.innerHTML = state.clients.map(c=>`<option value="${c.name}">`).join('');
+        });
+    </script>
+    
+    <!-- Authentication Manager -->
+    <script src="js/auth-manager.js"></script>
+    <script>
+        // Check authentication on dashboard load
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = AuthManager.getUserData();
+            if (!userData || userData.role !== 'freelancer') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Update any user-specific content in the dashboard
+            const userElements = document.querySelectorAll('[data-user-name]');
+            userElements.forEach(el => {
+                el.textContent = userData.name;
+            });
         });
     </script>
 </body>
